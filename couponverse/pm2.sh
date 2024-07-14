@@ -19,6 +19,7 @@ for script in "${scripts[@]}"; do
     iter=$4
 
     $PM2_PATH stop "$name"
+    echo "Stopped $name"
 
     while true; do
         $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" -- /var/www/dc_factory/$script_path $country "$iter" "$key" --interpreter /bin/bash --no-autorestart
