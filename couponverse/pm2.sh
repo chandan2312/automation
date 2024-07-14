@@ -57,7 +57,9 @@ for script in "${scripts[@]}"; do
                 break  # Exit inner loop to restart the script
             fi
 
-            sleep 2  # Check every 2 seconds
+            sleep 10  # Check every 2 seconds
         done
+
+        sleep 120
     done
 done
