@@ -37,25 +37,22 @@ for script in "${scripts[@]}"; do
             sleep 2  # Check every 2 seconds
         done
 
-        # Check the last 15 lines of the logs after the script has stopped
         log_output=$($PM2_PATH logs "$name" --lines 15)
-        echo "$log_output"  # Output to console for immediate visibility
+        echo "$log_output"
 
         if echo "$log_output" | grep -q "Ended successfully"; then
             echo "$name completed successfully"
-            break  # Exit the while loop and move to the next script
+            break  
         fi
 
-        error_message=$(echo "$log_output" | grep -E "${error_messages["too_many_requests"]}|${error_messages["navigation_error"]}|${error_messages["partial_translation"]}")
-
-        if echo "$error_message" | grep -q "${error_messages["too_many_requests"]}"; then
+        if echo "$log_output" | grep -q "too many requests"; then
             echo "$name $country $iter $key - 🗝️ key error 🗝️"
-            echo "Error : $error_message"
             key=$((key % key_range + 1))
+        elif echo "$log_output" | grep -q "Navigation timeout\|partial translation\|status code 500"; then
+            echo "$name $country $iter $key - ⏭️ ⏭️"
+            iter=$((iter + 1))
         else
             echo "$name $country $iter $key - ⚠️ unknown error ⚠️"
-            echo "Error : $error_message"
-            iter=$((iter + 1))
         fi
 
         $PM2_PATH delete "$name"
