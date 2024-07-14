@@ -34,6 +34,7 @@ for script in "${scripts[@]}"; do
             status=$($PM2_PATH describe "$name" | grep "status" | awk '{print $2}')
             echo "Current status of $name: $status" 
             if [ "$status" != "online" ]; then
+                $PM2_PATH logs "$name" --lines 15
                 log_output=$($PM2_PATH logs "$name" --lines 15)
                 echo "$log_output"
 
@@ -56,7 +57,7 @@ for script in "${scripts[@]}"; do
                 echo "Restarting $name $country $iter $key"
                 break
             fi
-            sleep 2  # Check every 2 seconds
+            sleep 30  # Check every 30 seconds
         done
     done
 done
