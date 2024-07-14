@@ -51,15 +51,12 @@ for script in "${scripts[@]}"; do
                 fi
 
                 $PM2_PATH delete "$name"
-                echo "Restarting $name $country $iter $key"
+                echo "Restarting $name with iter=$iter, key=$key"
                 sleep 60  # Sleep only after status is not online
                 break  # Exit inner loop to restart the script
             fi
-        done
 
-        # Ensure the outer loop breaks if "Script ended" was found
-        if echo "$log_output" | grep -qi "Script ended"; then
-            break  # Exit outer loop to move to the next script
-        fi
+            sleep 2  # Check every 2 seconds
+        done
     done
 done
