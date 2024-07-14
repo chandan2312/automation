@@ -22,18 +22,28 @@ for script in "${scripts[@]}"; do
     echo "Stopped $name"
 
     while true; do
+        # Start the script
         $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" -- /var/www/dc_factory/$script_path $country "$iter" "$key" --interpreter /bin/bash --no-autorestart
 
+        # Output logs in the background
         $PM2_PATH logs "$name" &
 
-        $PM2_PATH wait "$name"
+        # Wait until the process is no longer running
+        while true; do
+            status=$($PM2_PATH describe "$name" | grep "status" | awk '{print $2}')
+            if [ "$status" != "online" ]; then
+                break
+            fi
+            sleep 2  # Check every 2 seconds
+        done
 
+        # Check the last 15 lines of the logs after the script has stopped
         log_output=$($PM2_PATH logs "$name" --lines 15)
-        echo "$log_output" 
+        echo "$log_output"  # Output to console for immediate visibility
 
         if echo "$log_output" | grep -q "Ended successfully"; then
             echo "$name completed successfully"
-            break  
+            break  # Exit the while loop and move to the next script
         fi
 
         error_message=$(echo "$log_output" | grep -E "${error_messages["too_many_requests"]}|${error_messages["navigation_error"]}|${error_messages["partial_translation"]}")
