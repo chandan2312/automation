@@ -26,9 +26,9 @@ for script in "${scripts[@]}"; do
         # Start the script
         $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" -- /var/www/dc_factory/$script_path $country "$iter" "$key" --no-autorestart
 
-        # Monitor the process
         while true; do
-            status=$($PM2_PATH describe "$name" | grep "status" | awk '{print $2}')
+            # Fetch and parse the status of the process
+            status=$($PM2_PATH describe "$name" | grep -i "status" | awk '{print $2}')
             echo "Current status of $name: $status"
 
             if [ "$status" != "online" ]; then
