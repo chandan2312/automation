@@ -1,6 +1,7 @@
 #!/bin/bash
 
 PM2_PATH=~/.nvm/versions/node/v22.2.0/bin/pm2
+NVM_PATH=~/.nvm
 
 scripts=(
     "cron/network/promocodie.js promocodie_CZ cz 1355"
