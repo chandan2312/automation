@@ -23,7 +23,7 @@ for script in "${scripts[@]}"; do
 
     while true; do
         # Start the script
-        $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" -- /var/www/dc_factory/$script_path $country "$iter" "$key" --interpreter /bin/bash --no-autorestart
+        $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" -- /var/www/dc_factory/$script_path $country "$iter" "$key"  --no-autorestart
 
         # Output logs in the background
         $PM2_PATH logs "$name" &
