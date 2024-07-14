@@ -28,7 +28,8 @@ for script in "${scripts[@]}"; do
 
         while true; do
             # Fetch and parse the status of the process
-            status=$($PM2_PATH describe "$name" | grep -i "status" | awk '{print $2}')
+            status=$($PM2_PATH jlist | jq -r ".[] | select(.name == \"$name\") | .pm2_env.status")
+
             echo "Current status of $name: $status"
 
             if [ "$status" != "online" ]; then
