@@ -14,6 +14,8 @@ for script in "${scripts[@]}"; do
     country=$3
     iter=$4
 
+    pm2 stop "$name"
+
     while true; do
         pm2 start /var/www/dc_factory/xvfb.sh --name "$name" -- /var/www/dc_factory/$script_path $country "$iter" "$key" --interpreter /bin/bash
         pm2 wait "$name"
