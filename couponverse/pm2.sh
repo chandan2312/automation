@@ -3,7 +3,7 @@
 PM2_PATH=~/.nvm/versions/node/v22.2.0/bin/pm2
 
 scripts=(
-    "cron/network/promocodie.js promocodie_CZ cz 0"
+    "cron/network/promocodie.js promocodie_CZ cz 1355"
     "cron/network/promocodie.js promocodie_DE de 0"
     "cron/network/promocodie.js promocodie_BR br 0"
 )
