@@ -1,4 +1,4 @@
-source couponasion.sh
+source ./couponasion.sh
 
 key=1
 key_range=5
