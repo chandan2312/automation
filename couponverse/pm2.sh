@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PM2_PATH=$(which pm2)  # Get the full path to pm2
+PM2_PATH=~/.nvm/versions/node/v22.2.0/bin/pm2
 
 scripts=(
     "cron/network/asion.p.js couponasion_ID id 0"
