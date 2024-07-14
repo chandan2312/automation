@@ -26,6 +26,8 @@ for script in "${scripts[@]}"; do
         # Start the script
         $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" -- /var/www/dc_factory/$script_path $country "$iter" "$key" --no-autorestart
 
+        echo "sleeping 120 seconds"
+        sleep 120
         while true; do
             # Fetch and parse the status of the process
             status=$($PM2_PATH jlist | jq -r ".[] | select(.name == \"$name\") | .pm2_env.status")
@@ -60,6 +62,6 @@ for script in "${scripts[@]}"; do
             sleep 10  # Check every 2 seconds
         done
 
-        sleep 120
+        
     done
 done
