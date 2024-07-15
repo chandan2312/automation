@@ -44,7 +44,7 @@ for script in "${scripts[@]}"; do
             echo "Status $name: $status"
             echo "currIter: $currIter , prevIter: $prevIter"
 
-            if [ "$status" != "online" ]; then
+            if [ "$status" -ne "online" ]; then
                 log_output=$($PM2_PATH logs "$name" --lines 100)
                 log_output_15=$($PM2_PATH logs "$name" --lines 15)
                 echo "$log_output_15"
@@ -59,7 +59,7 @@ for script in "${scripts[@]}"; do
                     key=$((key % key_range + 1))
                 elif echo "$log_output" | grep -qi "Navigation timeout\|partial translation\|status code 500\|Fatal server\|Make sure an X server"; then
                     # Extract the current iter from the logs
-                    extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1 | xargs)
+                    extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | xargs)
                     echo "Extracted iter: $extracted_iter"
 
                     # Convert extracted_iter to integer if not empty
