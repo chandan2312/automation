@@ -53,6 +53,8 @@ for script in "${scripts[@]}"; do
                     echo "$name $country $currIter $key - 🗝️ key error 🗝️"
                     key=$((key % key_range + 1))
                 elif echo "$log_output" | grep -qi "Navigation timeout\|partial translation\|status code 500\|Fatal server\|Make sure an X server"; then
+                    echo "no error before extracting iter"
+
                     extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | xargs)
                     echo "Extracted iter: $extracted_iter"
 
@@ -63,6 +65,7 @@ for script in "${scripts[@]}"; do
                         currIter=$((currIter + 10))
                     fi
                 else
+                    echo "no error before extracting iter, but not matching errors"
                     extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1 | xargs)
                     echo "Extracted iter: $extracted_iter"
 
