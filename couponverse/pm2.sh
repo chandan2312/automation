@@ -38,13 +38,20 @@ for script in "${scripts[@]}"; do
         $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" --no-autorestart -- /var/www/dc_factory/$script_path $country "$currIter" "$key"
 
         while true; do
-            sleep 10 
-            status=$($PM2_PATH jlist | grep -Po '"name":"'$name'".*?"status":"\K(.*?)"')
+             
+            status=$($PM2_PATH jlist | grep -Po '"name":"'$name'".*?"status":"\K(.*?)"' | xargs)
             
             echo "Status $name: $status"
             echo "currIter: $currIter , prevIter: $prevIter"
 
-            if [ "$status" -ne "online" ]; then
+            if [ "$status" == "online" ]; then
+
+                echo "$name is still online, continuing loop"
+                sleep 10
+                
+            else
+                
+
                 log_output=$($PM2_PATH logs "$name" --lines 100)
                 log_output_15=$($PM2_PATH logs "$name" --lines 15)
                 echo "$log_output_15"
@@ -88,8 +95,6 @@ for script in "${scripts[@]}"; do
                 echo "Restarting $name with currIter=$currIter, key=$key"
                 sleep 60 
                 break
-            else
-                echo "$name is still online, continuing to check..."
             fi
         done 
 
