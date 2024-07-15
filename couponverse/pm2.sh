@@ -29,68 +29,66 @@ for script in "${scripts[@]}"; do
         $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" --no-autorestart -- /var/www/dc_factory/$script_path $country "$currIter" "$key"
 
         while true; do
-             
-            status=$($PM2_PATH jlist | grep -Po '"name":"'$name'".*?"status":"\K[^"]*' | xargs)
+    status=$($PM2_PATH jlist | grep -Po '"name":"'$name'".*?"status":"\K[^"]*' | xargs)
+    
+    echo "$status"
+    echo "currIter: $currIter , prevIter: $prevIter"
+
+    if [ "$status" == "online" ]; then
+        echo "$name is still online, continuing loop"
+        sleep 10
+    else
+        # Run log commands in the background
+        {
+            log_output=$($PM2_PATH logs "$name" --lines 100 --no-color)
+            log_output_15=$($PM2_PATH logs "$name" --lines 15 --no-color)
+
             
-            echo "$status"
-            
+            sleep 10
+            echo "$log_output_15"
+            echo "log outed"
 
-            if [ "$status" == "online" ]; then
-                sleep 10
-                
-            else
-
-                echo "Script $name is not online"
-                echo "$status"
-                
-
-                log_output=$($PM2_PATH logs "$name" --lines 100)
-                sleep 5
-                log_output_15=$($PM2_PATH logs "$name" --lines 15)
-                sleep 5
-                echo "$log_output_15"
-
-                if echo "$log_output" | grep -qi "Script Ended"; then
-                    echo "$name completed successfully"
-                    break 2
-                fi
-
-                if echo "$log_output" | grep -qi "too many requests"; then
-                    echo "$name $country $currIter $key - 🗝️ key error 🗝️"
-                    key=$((key % key_range + 1))
-                elif echo "$log_output" | grep -qi "Navigation timeout\|partial translation\|status code 500\|Fatal server\|Make sure an X server"; then
-                    # Extract the current iter from the logs
-                    extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | xargs)
-                    echo "Extracted iter: $extracted_iter"
-
-                    # Convert extracted_iter to integer if not empty
-                    if [ -n "$extracted_iter" ]; then
-                         extracted_iter=$(($extracted_iter))
-                         currIter=$(($extracted_iter + 1))
-                    else
-                        echo "iter not extracted"
-                        currIter=$((currIter + 10))
-                    fi
-                else
-                    extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1 | xargs)
-                    echo "Extracted iter: $extracted_iter"
-
-                    # Convert extracted_iter to integer if not empty
-                    if [ -n "$extracted_iter" ]; then
-                         extracted_iter=$(($extracted_iter))
-                         currIter=$(($extracted_iter + 1))
-                    else
-                        echo "iter not extracted"
-                        currIter=$((currIter + 10))
-                    fi
-                fi
-
-                $PM2_PATH delete "$name"
-                echo "Restarting $name with currIter=$currIter, key=$key"
-                sleep 60 
-                break
+            if echo "$log_output" | grep -qi "Script Ended"; then
+                echo "$name completed successfully"
+                exit 0
             fi
-        done 
+
+            if echo "$log_output" | grep -qi "too many requests"; then
+                echo "$name $country $currIter $key - 🗝️ key error 🗝️"
+                key=$((key % key_range + 1))
+            elif echo "$log_output" | grep -qi "Navigation timeout\|partial translation\|status code 500\|Fatal server\|Make sure an X server"; then
+                extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | xargs)
+                echo "Extracted iter: $extracted_iter"
+
+                if [ -n "$extracted_iter" ]; then
+                    currIter=$((extracted_iter + 1))
+                else
+                    echo "iter not extracted"
+                    currIter=$((currIter + 10))
+                fi
+            else
+                extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1 | xargs)
+                echo "Extracted iter: $extracted_iter"
+
+                if [ -n "$extracted_iter" ]; then
+                    currIter=$((extracted_iter + 1))
+                else
+                    echo "iter not extracted"
+                    currIter=$((currIter + 10))
+                fi
+            fi
+
+            $PM2_PATH delete "$name"
+            echo "Restarting $name with currIter=$currIter, key=$key"
+            sleep 60 
+        } &  # Run the block in the background
+
+        # Optionally wait for the background job to finish, if needed
+        wait
+        
+        continue
+    fi
+done
 
         echo "Sleeping 120 seconds before next script"
         sleep 120 
