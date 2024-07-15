@@ -20,15 +20,6 @@ for script in "${scripts[@]}"; do
     currIter=$4
     prevIter=-1
 
-    # Declare currIter and prevIter as integers
-    declare -i currIter
-    declare -i prevIter
-
-    # Check data types (currIter and prevIter are integers)
-    echo "Checking types of currIter and prevIter"
-    declare -p currIter
-    declare -p prevIter
-
     $PM2_PATH stop "$name"
     echo "Stopped $name"
 
@@ -42,18 +33,21 @@ for script in "${scripts[@]}"; do
             status=$($PM2_PATH jlist | grep -Po '"name":"'$name'".*?"status":"\K[^"]*' | xargs)
             
             echo "$status"
-            echo "currIter: $currIter , prevIter: $prevIter"
+            
 
             if [ "$status" == "online" ]; then
-
-                echo "$name is still online, continuing loop"
                 sleep 10
                 
             else
+
+                echo "Script $name is not online"
+                echo "$status"
                 
 
                 log_output=$($PM2_PATH logs "$name" --lines 100)
+                sleep 5
                 log_output_15=$($PM2_PATH logs "$name" --lines 15)
+                sleep 5
                 echo "$log_output_15"
 
                 if echo "$log_output" | grep -qi "Script Ended"; then
