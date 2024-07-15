@@ -26,7 +26,7 @@ for script in "${scripts[@]}"; do
     while true; do
         prevIter=$currIter
         # Start the script
-        $PM2_PATH start /var/www/dc_factory/xvfb.sh -- /var/www/dc_factory/$script_path $country "$currIter" "$key" --no-autorestart --name "$name"
+        $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" -- /var/www/dc_factory/$script_path $country "$currIter" "$key" --no-autorestart 
 
         while [ "$prevIter" -eq "$currIter" ]; do
             sleep 10 
