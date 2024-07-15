@@ -20,7 +20,11 @@ for script in "${scripts[@]}"; do
     currIter=$4
     prevIter=-1
 
-    # Check data types
+    # Declare currIter and prevIter as integers
+    declare -i currIter
+    declare -i prevIter
+
+    # Check data types (currIter and prevIter are integers)
     echo "Checking types of currIter and prevIter"
     declare -p currIter
     declare -p prevIter
@@ -57,7 +61,10 @@ for script in "${scripts[@]}"; do
                     # Extract the current iter from the logs
                     extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1 | xargs)
                     echo "Extracted iter: $extracted_iter"
+
+                    # Convert extracted_iter to integer if not empty
                     if [ -n "$extracted_iter" ]; then
+                         extracted_iter=$(($extracted_iter))
                          currIter=$(($extracted_iter + 1))
                     else
                         echo "iter not extracted"
@@ -66,7 +73,10 @@ for script in "${scripts[@]}"; do
                 else
                     extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1 | xargs)
                     echo "Extracted iter: $extracted_iter"
+
+                    # Convert extracted_iter to integer if not empty
                     if [ -n "$extracted_iter" ]; then
+                         extracted_iter=$(($extracted_iter))
                          currIter=$(($extracted_iter + 1))
                     else
                         echo "iter not extracted"
@@ -74,12 +84,14 @@ for script in "${scripts[@]}"; do
                     fi
                 fi
 
-                $PM2_PATH stop "$name"
-                sleep 10
-                $PM2_PATH delete "$name"
-                echo "Restarting $name with currIter=$currIter, key=$key"
-                sleep 60 
-                break
+
+                sleep 20
+                # $PM2_PATH stop "$name"
+                # sleep 10
+                # $PM2_PATH delete "$name"
+                # echo "Restarting $name with currIter=$currIter, key=$key"
+                # sleep 60 
+                # break
             else
                 echo "$name is still online, continuing to check..."
             fi
