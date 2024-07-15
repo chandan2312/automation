@@ -21,6 +21,7 @@ for script in "${scripts[@]}"; do
     prevIter=-1
 
     # Check data types
+    echo "Checking types of currIter and prevIter"
     declare -p currIter
     declare -p prevIter
 
@@ -32,18 +33,16 @@ for script in "${scripts[@]}"; do
         # Start the script
         $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" --no-autorestart -- /var/www/dc_factory/$script_path $country "$currIter" "$key"
 
-
         while [ "$prevIter" -eq "$currIter" ]; do
             sleep 10 
             status=$($PM2_PATH jlist | grep -Po '"name":"'$name'".*?"status":"\K(.*?)"')
             
-
             echo "Status $name: $status"
             echo "currIter: $currIter , prevIter: $prevIter"
 
             if [ "$status" != "online" ]; then
                 log_output=$($PM2_PATH logs "$name" --lines 100)
-                log_output_15=$($PM2_PATH logs "$name" --lines 15) 
+                log_output_15=$($PM2_PATH logs "$name" --lines 15)
                 echo "$log_output_15"
 
                 if echo "$log_output" | grep -qi "Script Ended"; then
@@ -55,26 +54,23 @@ for script in "${scripts[@]}"; do
                     echo "$name $country $currIter $key - 🗝️ key error 🗝️"
                     key=$((key % key_range + 1))
                 elif echo "$log_output" | grep -qi "Navigation timeout\|partial translation\|status code 500\|Fatal server\|Make sure an X server"; then
-                   
                     # Extract the current iter from the logs
                     extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1 | xargs)
                     echo "Extracted iter: $extracted_iter"
                     if [ -n "$extracted_iter" ]; then
                          currIter=$(($extracted_iter + 1))
-                        
                     else
                         echo "iter not extracted"
                         currIter=$((currIter + 10))
                     fi
                 else
-                    extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1 | xargs)                    echo "Extracted iter: $extracted_iter"
+                    extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1 | xargs)
+                    echo "Extracted iter: $extracted_iter"
                     if [ -n "$extracted_iter" ]; then
                          currIter=$(($extracted_iter + 1))
-                         
                     else
                         echo "iter not extracted"
                         currIter=$((currIter + 10))
-                        
                     fi
                 fi
 
