@@ -55,7 +55,9 @@ for script in "${scripts[@]}"; do
                 if echo "$log_output" | grep -qi "Script Ended"; then
                     echo "$name completed successfully"
                     PM2_PATH delete "$name"
+                    sleep 10
                     break 2
+                    sleep 10
                 fi
 
 

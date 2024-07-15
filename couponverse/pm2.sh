@@ -55,14 +55,16 @@ for script in "${scripts[@]}"; do
                 if echo "$log_output" | grep -qi "Script Ended"; then
                     echo "$name completed successfully"
                     PM2_PATH delete "$name"
+                    sleep 10
                     break 2
+                    sleep 10
                 fi
 
 
                 if echo "$log_output" | grep -qi "too many requests"; then
                     echo "$name $country $currIter $key - 🗝️ key error 🗝️"
                     key=$((key % key_range + 1))
-                elif echo "$log_output" | grep -qi "Navigation timeout\|partial translation\|status code 500\|Fatal server\|Make sure an X server"; then
+                elif echo "$log_output" | grep -qi "Navigation timeout\|Partial Translation\|status code 500\|Fatal server\|Make sure an X server"; then
 
                     extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1 | xargs)
                     echo "Extracted iter: $extracted_iter"
