@@ -3,12 +3,13 @@
 PM2_PATH=~/.nvm/versions/node/v22.2.0/bin/pm2
 NVM_PATH=~/.nvm
 
-if [ $# -ne 1 ]; then
-    echo "Usage: $0 <script_array_file>"
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 <script_array_file> <start_index>"
     exit 1
 fi
 
 SCRIPT_ARRAY_FILE=$1
+START_INDEX=$2
 
 # Source the script array file
 if [ -f "$SCRIPT_ARRAY_FILE" ]; then
@@ -18,11 +19,18 @@ else
     exit 1
 fi
 
+# Validate START_INDEX
+if ! [[ "$START_INDEX" =~ ^[0-9]+$ ]]; then
+    echo "Start index must be a non-negative integer."
+    exit 1
+fi
 
 key=1
 key_range=5
 
-for script in "${scripts[@]}"; do
+# Loop through the scripts array starting from the given index
+for ((i=START_INDEX; i<${#scripts[@]}; i++)); do
+    script="${scripts[$i]}"
     set -- $script
     script_path=$1
     name=$2
@@ -32,7 +40,6 @@ for script in "${scripts[@]}"; do
 
     $PM2_PATH stop "$name"
     echo "Stopped $name"
-
 
     while true; do
         # Start the script
@@ -54,18 +61,15 @@ for script in "${scripts[@]}"; do
 
                 if echo "$log_output" | grep -qi "Script Ended"; then
                     echo "$name completed successfully"
-                    PM2_PATH delete "$name"
+                    $PM2_PATH delete "$name"
                     sleep 10
                     break 2
-                    sleep 10
                 fi
-
 
                 if echo "$log_output" | grep -qi "too many requests\|Resource exhausted\|was blocked\|Request failed with status code 429"; then
                     echo "$name $country $currIter $key - 🗝️ key error 🗝️"
                     key=$((key % key_range + 1))
                 elif echo "$log_output" | grep -qi "Navigation timeout\|Partial Translation\|status code 500\|Fatal server\|Make sure an X server"; then
-
                     extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1 | xargs)
                     echo "Extracted iter: $extracted_iter"
 
@@ -87,7 +91,6 @@ for script in "${scripts[@]}"; do
                     fi
                 fi
 
-                
                 sleep 5
                 break
             fi
