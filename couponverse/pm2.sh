@@ -39,9 +39,9 @@ for script in "${scripts[@]}"; do
 
         while true; do
              
-            status=$($PM2_PATH jlist | grep -Po '"name":"'$name'".*?"status":"\K(.*?)"')
+            status=$($PM2_PATH jlist | grep -Po '"name":"'$name'".*?"status":"\K[^"]*' | xargs)
             
-            echo "Status $name: $status"
+            echo "$status"
             echo "currIter: $currIter , prevIter: $prevIter"
 
             if [ "$status" == "online" ]; then
