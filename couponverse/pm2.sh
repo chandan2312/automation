@@ -39,7 +39,7 @@ for script in "${scripts[@]}"; do
 
         while true; do
              
-            status=$($PM2_PATH jlist | grep -Po '"name":"'$name'".*?"status":"\K(.*?)"' | xargs)
+            status=$($PM2_PATH jlist | grep -Po '"name":"'$name'".*?"status":"\K(.*?)"')
             
             echo "Status $name: $status"
             echo "currIter: $currIter , prevIter: $prevIter"
