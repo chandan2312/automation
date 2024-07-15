@@ -20,13 +20,17 @@ for script in "${scripts[@]}"; do
     currIter=$4
     prevIter=-1
 
+    # Check data types
+    declare -p currIter
+    declare -p prevIter
+
     $PM2_PATH stop "$name"
     echo "Stopped $name"
 
     while true; do
         prevIter=$currIter
         # Start the script
-        $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" -- /var/www/dc_factory/$script_path $country "$currIter" "$key" --no-autorestart 
+        $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" -- /var/www/dc_factory/$script_path $country "$currIter" "$key" --no-autorestart --max-restarts 0 --restart-delay 60000 
 
         while [ "$prevIter" -eq "$currIter" ]; do
             sleep 10 
