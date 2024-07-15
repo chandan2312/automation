@@ -43,7 +43,7 @@ for script in "${scripts[@]}"; do
 
             if [ "$status" == "online" ]; then
                 echo "$status"
-                sleep 60
+                sleep 120
             else
                 echo "$status"
 
@@ -61,7 +61,7 @@ for script in "${scripts[@]}"; do
                 fi
 
 
-                if echo "$log_output" | grep -qi "too many requests"; then
+                if echo "$log_output" | grep -qi "too many requests\|Resource exhausted\|was blocked\|Request failed with status code 429"; then
                     echo "$name $country $currIter $key - 🗝️ key error 🗝️"
                     key=$((key % key_range + 1))
                 elif echo "$log_output" | grep -qi "Navigation timeout\|Partial Translation\|status code 500\|Fatal server\|Make sure an X server"; then
