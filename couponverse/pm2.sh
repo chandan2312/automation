@@ -30,7 +30,8 @@ for script in "${scripts[@]}"; do
     while true; do
         prevIter=$currIter
         # Start the script
-        $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" -- /var/www/dc_factory/$script_path $country "$currIter" "$key" --no-autorestart --max-restarts 0 --restart-delay 60000 
+        $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" --no-autorestart -- /var/www/dc_factory/$script_path $country "$currIter" "$key"
+
 
         while [ "$prevIter" -eq "$currIter" ]; do
             sleep 10 
@@ -78,6 +79,7 @@ for script in "${scripts[@]}"; do
                 fi
 
                 $PM2_PATH stop "$name"
+                sleep 10
                 $PM2_PATH delete "$name"
                 echo "Restarting $name with currIter=$currIter, key=$key"
                 sleep 60 
