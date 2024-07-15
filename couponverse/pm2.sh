@@ -35,13 +35,13 @@ for script in "${scripts[@]}"; do
                 echo "$status"
 
                 log_output=$(cat "/root/.pm2/logs/$name-out.log" | tail -n 30)
-
-                sleep 10
-                echo "$log_output"
-                echo "log output fetched"
+                sleep 5
+                log_output_5=$(cat "/root/.pm2/logs/$name-out.log" | tail -n 5)
+                echo "$log_output_5"
 
                 if echo "$log_output" | grep -qi "Script Ended"; then
                     echo "$name completed successfully"
+                    PM2_PATH delete "$name"
                     break 2
                 fi
 
