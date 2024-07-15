@@ -66,9 +66,18 @@ for ((i=START_INDEX; i<${#scripts[@]}; i++)); do
                     break 2
                 fi
 
-                if echo "$log_output" | grep -qi "too many requests\|Resource exhausted\|was blocked\|Request failed with status code 429"; then
+                if echo "$log_output" | grep -qi "too many requests\|Resource exhausted\|was blocked\|Request failed with status code 429\|Gemini Block Error"; then
                     echo "$name $country $currIter $key - 🗝️ key error 🗝️"
                     key=$((key % key_range + 1))
+                    extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1 | xargs)
+                    echo "Extracted iter: $extracted_iter"
+                    if [ -n "$extracted_iter" ]; then
+                        currIter=$((extracted_iter))
+                    else
+                        echo "iter not extracted"
+                        currIter=$((currIter + 10))
+                    fi
+
                 elif echo "$log_output" | grep -qi "Navigation timeout\|Partial Translation\|status code 500\|Fatal server\|Make sure an X server"; then
                     extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1 | xargs)
                     echo "Extracted iter: $extracted_iter"
