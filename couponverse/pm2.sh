@@ -82,6 +82,8 @@ for script in "${scripts[@]}"; do
                 echo "Restarting $name with currIter=$currIter, key=$key"
                 sleep 60 
                 break
+            else
+                echo "$name is still online, continuing to check..."
             fi
         done 
 
