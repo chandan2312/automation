@@ -17,51 +17,68 @@ for script in "${scripts[@]}"; do
     script_path=$1
     name=$2
     country=$3
-    iter=$4
+    currIter=$4
+    prevIter=-1
 
     $PM2_PATH stop "$name"
     echo "Stopped $name"
 
     while true; do
+        prevIter=$currIter
         # Start the script
-        $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" -- /var/www/dc_factory/$script_path $country "$iter" "$key" --no-autorestart
+        $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" -- /var/www/dc_factory/$script_path $country "$currIter" "$key" --no-autorestart
 
-        echo "sleeping 120 seconds"
-        sleep 120
-        while true; do
-            # Fetch and parse the status of the process
-            status=$($PM2_PATH jlist | jq -r ".[] | select(.name == \"$name\") | .pm2_env.status")
+        while [ "$prevIter" -eq "$currIter" ]; do
+            sleep 10 
+            status=$($PM2_PATH jlist | grep -Po '"name":"'$name'".*?"status":"\K(.*?)"')
 
-            echo "Current status of $name: $status"
+            echo "Status $name: $status"
 
             if [ "$status" != "online" ]; then
-                log_output=$($PM2_PATH logs "$name" --lines 15)
-                echo "$log_output"
+                log_output=$($PM2_PATH logs "$name" --lines 100)
+                log_output_15=$($PM2_PATH logs "$name" --lines 15) 
+                echo "$log_output_15"
 
-                if echo "$log_output" | grep -qi "Script ended"; then
+                if echo "$log_output" | grep -qi "Script Ended"; then
                     echo "$name completed successfully"
-                    break 2  # Exit both loops and move to the next script
+                    break 2
                 fi
 
                 if echo "$log_output" | grep -qi "too many requests"; then
-                    echo "$name $country $iter $key - 🗝️ key error 🗝️"
+                    echo "$name $country $currIter $key - 🗝️ key error 🗝️"
                     key=$((key % key_range + 1))
                 elif echo "$log_output" | grep -qi "Navigation timeout\|partial translation\|status code 500\|Fatal server\|Make sure an X server"; then
-                    echo "$name $country $iter $key - ⏭️ ⏭️"
-                    iter=$((iter + 1))
+                   
+                    # Extract the current iter from the logs
+                    extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1)
+                    if [ -n "$extracted_iter" ]; then
+                        currIter=$extracted_iter+1
+                        
+                    else
+                        echo "iter not extracted"
+                        currIter=$((currIter + 10))
+                    fi
                 else
-                    echo "$name $country $iter $key - ⚠️ unknown error ⚠️"
+                    extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1)
+                    if [ -n "$extracted_iter" ]; then
+                        currIter=$extracted_iter+1
+                         
+                    else
+                        echo "iter not extracted"
+                        currIter=$((currIter + 10))
+                        
+                    fi
                 fi
 
+                $PM2_PATH stop "$name"
                 $PM2_PATH delete "$name"
-                echo "Restarting $name with iter=$iter, key=$key"
-                sleep 60  # Sleep only after status is not online
-                break  # Exit inner loop to restart the script
+                echo "Restarting $name with currIter=$currIter, key=$key"
+                sleep 60 
+                break
             fi
-
-            sleep 10  # Check every 2 seconds
         done
 
-        
+        echo "Sleeping 120 seconds before next script"
+        sleep 120 
     done
 done
