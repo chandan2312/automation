@@ -38,12 +38,10 @@ for script in "${scripts[@]}"; do
     else
             echo "$status"
        
-            log_output=$($PM2_PATH logs "$name" --lines 100 --no-color)
-            log_output_15=$($PM2_PATH logs "$name" --lines 15 --no-color)
-
+            log_output=$($PM2_PATH logs "$name")
             
             sleep 10
-            echo "$log_output_15"
+            echo "$log_output"
             echo "log outed"
 
             if echo "$log_output" | grep -qi "Script Ended"; then
