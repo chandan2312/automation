@@ -37,7 +37,7 @@ for script in "${scripts[@]}"; do
         # Start the script
         $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" --no-autorestart -- /var/www/dc_factory/$script_path $country "$currIter" "$key"
 
-        while [ "$prevIter" -eq "$currIter" ]; do
+        while [ "$prevIter" != "$currIter" ]; do
             sleep 10 
             status=$($PM2_PATH jlist | grep -Po '"name":"'$name'".*?"status":"\K(.*?)"')
             
@@ -84,14 +84,10 @@ for script in "${scripts[@]}"; do
                     fi
                 fi
 
-
-                sleep 20
-                # $PM2_PATH stop "$name"
-                # sleep 10
-                # $PM2_PATH delete "$name"
-                # echo "Restarting $name with currIter=$currIter, key=$key"
-                # sleep 60 
-                # break
+                $PM2_PATH delete "$name"
+                echo "Restarting $name with currIter=$currIter, key=$key"
+                sleep 60 
+                break
             else
                 echo "$name is still online, continuing to check..."
             fi
