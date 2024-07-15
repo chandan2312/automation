@@ -26,13 +26,15 @@ for script in "${scripts[@]}"; do
     while true; do
         prevIter=$currIter
         # Start the script
-        $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" -- /var/www/dc_factory/$script_path $country "$currIter" "$key" --no-autorestart
+        $PM2_PATH start /var/www/dc_factory/xvfb.sh -- /var/www/dc_factory/$script_path $country "$currIter" "$key" --no-autorestart --name "$name"
 
         while [ "$prevIter" -eq "$currIter" ]; do
             sleep 10 
             status=$($PM2_PATH jlist | grep -Po '"name":"'$name'".*?"status":"\K(.*?)"')
+            
 
             echo "Status $name: $status"
+            echo "currIter: $currIter , prevIter: $prevIter"
 
             if [ "$status" != "online" ]; then
                 log_output=$($PM2_PATH logs "$name" --lines 100)
@@ -51,6 +53,7 @@ for script in "${scripts[@]}"; do
                    
                     # Extract the current iter from the logs
                     extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1)
+                    echo "Extracted iter: $extracted_iter"
                     if [ -n "$extracted_iter" ]; then
                         currIter=$extracted_iter+1
                         
@@ -60,6 +63,7 @@ for script in "${scripts[@]}"; do
                     fi
                 else
                     extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1)
+                    echo "Extracted iter: $extracted_iter"
                     if [ -n "$extracted_iter" ]; then
                         currIter=$extracted_iter+1
                          
@@ -71,7 +75,7 @@ for script in "${scripts[@]}"; do
                 fi
 
                 $PM2_PATH stop "$name"
-                $PM2_PATH delete "$name"
+                # $PM2_PATH delete "$name"
                 echo "Restarting $name with currIter=$currIter, key=$key"
                 sleep 60 
                 break
