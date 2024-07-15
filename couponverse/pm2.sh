@@ -38,7 +38,7 @@ for script in "${scripts[@]}"; do
     else
             echo "$status"
        
-            log_output=$($PM2_PATH logs "$name")
+            log_output=$($PM2_PATH logs "$name" --raw --lines 50)
             
             sleep 10
             echo "$log_output"
