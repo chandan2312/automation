@@ -37,7 +37,7 @@ for script in "${scripts[@]}"; do
         # Start the script
         $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" --no-autorestart -- /var/www/dc_factory/$script_path $country "$currIter" "$key"
 
-        while [ "$prevIter" != "$currIter" ]; do
+        while true; do
             sleep 10 
             status=$($PM2_PATH jlist | grep -Po '"name":"'$name'".*?"status":"\K(.*?)"')
             
