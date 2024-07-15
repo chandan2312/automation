@@ -24,22 +24,20 @@ for script in "${scripts[@]}"; do
     echo "Stopped $name"
 
     while true; do
-        prevIter=$currIter
+       
         # Start the script
         $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" --no-autorestart -- /var/www/dc_factory/$script_path $country "$currIter" "$key"
 
         while true; do
     status=$($PM2_PATH jlist | grep -Po '"name":"'$name'".*?"status":"\K[^"]*' | xargs)
     
-    echo "$status"
-    echo "currIter: $currIter , prevIter: $prevIter"
 
     if [ "$status" == "online" ]; then
-        echo "$name is still online, continuing loop"
+        echo "$status"
         sleep 10
     else
-        # Run log commands in the background
-        {
+            echo "$status"
+       
             log_output=$($PM2_PATH logs "$name" --lines 100 --no-color)
             log_output_15=$($PM2_PATH logs "$name" --lines 15 --no-color)
 
@@ -50,7 +48,7 @@ for script in "${scripts[@]}"; do
 
             if echo "$log_output" | grep -qi "Script Ended"; then
                 echo "$name completed successfully"
-                exit 0
+                break 2
             fi
 
             if echo "$log_output" | grep -qi "too many requests"; then
@@ -80,13 +78,9 @@ for script in "${scripts[@]}"; do
 
             $PM2_PATH delete "$name"
             echo "Restarting $name with currIter=$currIter, key=$key"
-            sleep 60 
-        } &  # Run the block in the background
-
-        # Optionally wait for the background job to finish, if needed
-        wait
+            sleep 60
+            break
         
-        continue
     fi
 done
 
