@@ -52,20 +52,19 @@ for script in "${scripts[@]}"; do
                 elif echo "$log_output" | grep -qi "Navigation timeout\|partial translation\|status code 500\|Fatal server\|Make sure an X server"; then
                    
                     # Extract the current iter from the logs
-                    extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1)
+                    extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1 | xargs)
                     echo "Extracted iter: $extracted_iter"
                     if [ -n "$extracted_iter" ]; then
-                        currIter=$extracted_iter+1
+                         currIter=$(($extracted_iter + 1))
                         
                     else
                         echo "iter not extracted"
                         currIter=$((currIter + 10))
                     fi
                 else
-                    extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1)
-                    echo "Extracted iter: $extracted_iter"
+                    extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1 | xargs)                    echo "Extracted iter: $extracted_iter"
                     if [ -n "$extracted_iter" ]; then
-                        currIter=$extracted_iter+1
+                         currIter=$(($extracted_iter + 1))
                          
                     else
                         echo "iter not extracted"
@@ -75,12 +74,12 @@ for script in "${scripts[@]}"; do
                 fi
 
                 $PM2_PATH stop "$name"
-                # $PM2_PATH delete "$name"
+                $PM2_PATH delete "$name"
                 echo "Restarting $name with currIter=$currIter, key=$key"
                 sleep 60 
                 break
             fi
-        done
+        done 
 
         echo "Sleeping 120 seconds before next script"
         sleep 120 
