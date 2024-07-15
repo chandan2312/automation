@@ -20,8 +20,6 @@ for script in "${scripts[@]}"; do
     currIter=$4
     prevIter=-1
 
-    $PM2_PATH stop "$name"
-    echo "Stopped $name"
 
     while true; do
         # Start the script
@@ -32,7 +30,7 @@ for script in "${scripts[@]}"; do
 
             if [ "$status" == "online" ]; then
                 echo "$status"
-                sleep 10
+                sleep 60
             else
                 echo "$status"
 
@@ -47,13 +45,11 @@ for script in "${scripts[@]}"; do
                     break 2
                 fi
 
-                echo "no error checking log"
 
                 if echo "$log_output" | grep -qi "too many requests"; then
                     echo "$name $country $currIter $key - 🗝️ key error 🗝️"
                     key=$((key % key_range + 1))
                 elif echo "$log_output" | grep -qi "Navigation timeout\|partial translation\|status code 500\|Fatal server\|Make sure an X server"; then
-                    echo "no error before extracting iter"
 
                     extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | xargs)
                     echo "Extracted iter: $extracted_iter"
@@ -65,7 +61,6 @@ for script in "${scripts[@]}"; do
                         currIter=$((currIter + 10))
                     fi
                 else
-                    echo "no error before extracting iter, but not matching errors"
                     extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1 | xargs)
                     echo "Extracted iter: $extracted_iter"
 
@@ -77,14 +72,13 @@ for script in "${scripts[@]}"; do
                     fi
                 fi
 
-                $PM2_PATH delete "$name"
-                echo "Restarting $name with currIter=$currIter, key=$key"
-                sleep 60
+                
+                sleep 5
                 break
             fi
         done
 
-        echo "Sleeping 120 seconds before next script"
-        sleep 120 
+        sleep 30
+        echo "Restarting $name with currIter=$currIter, key=$key"
     done
 done
