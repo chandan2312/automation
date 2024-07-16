@@ -47,12 +47,13 @@ for ((i=START_INDEX; i<${#scripts[@]}; i++)); do
 
         while true; do
             status=$($PM2_PATH jlist | grep -Po '"name":"'$name'".*?"status":"\K[^"]*' | xargs)
+            current_time=$(date +"%Y-%m-%d %H:%M:%S")
 
             if [ "$status" == "online" ]; then
-                echo "$status"
+    
                 sleep 120
             else
-                echo "$status"
+                echo "$status - $current_time"
 
                 log_output=$(cat "/root/.pm2/logs/$name-out.log" | tail -n 30)
                 sleep 5

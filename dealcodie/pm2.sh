@@ -3,13 +3,14 @@
 PM2_PATH=~/.nvm/versions/node/v22.2.0/bin/pm2
 NVM_PATH=~/.nvm
 
-if [ $# -ne 2 ]; then
-    echo "Usage: $0 <script_array_file> <start_index>"
+if [ $# -ne 3 ]; then
+    echo "Usage: $0 <script_array_file> <start_index> <initial_iter>"
     exit 1
 fi
 
 SCRIPT_ARRAY_FILE=$1
 START_INDEX=$2
+INITIAL_ITER=$3
 
 # Source the script array file
 if [ -f "$SCRIPT_ARRAY_FILE" ]; then
@@ -25,6 +26,12 @@ if ! [[ "$START_INDEX" =~ ^[0-9]+$ ]]; then
     exit 1
 fi
 
+# Validate INITIAL_ITER
+if ! [[ "$INITIAL_ITER" =~ ^[0-9]+$ ]]; then
+    echo "Initial iteration must be a non-negative integer."
+    exit 1
+fi
+
 key=1
 key_range=5
 
@@ -35,7 +42,11 @@ for ((i=START_INDEX; i<${#scripts[@]}; i++)); do
     script_path=$1
     name=$2
     country=$3
-    currIter=$4
+    if [ $i -eq $START_INDEX ]; then
+        currIter=$INITIAL_ITER
+    else
+        currIter=$4
+    fi
     prevIter=-1
 
     $PM2_PATH stop "$name"
@@ -47,12 +58,12 @@ for ((i=START_INDEX; i<${#scripts[@]}; i++)); do
 
         while true; do
             status=$($PM2_PATH jlist | grep -Po '"name":"'$name'".*?"status":"\K[^"]*' | xargs)
+            current_time=$(date +"%Y-%m-%d %H:%M:%S")
 
             if [ "$status" == "online" ]; then
-                echo "$status"
                 sleep 120
             else
-                echo "$status"
+                echo "$status - $current_time"
 
                 log_output=$(cat "/root/.pm2/logs/$name-out.log" | tail -n 30)
                 sleep 5
