@@ -83,13 +83,13 @@ for ((i=START_INDEX; i<${#scripts[@]}; i++)); do
                     extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1 | xargs)
                     echo "Extracted iter: $extracted_iter"
                     if [ -n "$extracted_iter" ]; then
-                        currIter=$((extracted_iter))
+                        currIter=$((extracted_iter + 1))
                     else
                         echo "iter not extracted"
                         currIter=$((currIter + 10))
                     fi
 
-                elif echo "$log_output" | grep -qi "Navigation timeout\|Partial Translation\|status code 500\|Fatal server\|Make sure an X server"; then
+                elif echo "$log_output" | grep -qi "Navigation timeout\|Partial Translation\|status code 500\|Fatal server\|Make sure an X server\|30000ms exceeded\|90000ms exceeded"; then
                     extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1 | xargs)
                     echo "Extracted iter: $extracted_iter"
 
