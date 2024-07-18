@@ -2,6 +2,7 @@
 
 PM2_PATH=~/.nvm/versions/node/v22.2.0/bin/pm2
 NVM_PATH=~/.nvm
+DOCKER_PATH=/usr/bin/docker
 
 if [ $# -ne 3 ]; then
     echo "Usage: $0 <script_array_file> <start_index> <initial_iter>"
@@ -119,4 +120,25 @@ for ((i=START_INDEX; i<${#scripts[@]}; i++)); do
         sleep 30
         echo "Restarting $name with currIter=$currIter, key=$key"
     done
+
+     # Restart MongoDB instances
+    $DOCKER_PATH stop mongo1 mongo2 mongo3
+    sleep 15
+    $DOCKER_PATH start mongo1 mongo2 mongo3
+    sleep 30
+    echo "MongoDB instances restarted"
+
+     
+    XVFB_PID=$(pgrep -f "Xvfb :99")
+    if [ -n "$XVFB_PID" ]; then
+        echo "Killing existing Xvfb process with PID: $XVFB_PID"
+        kill -9 "$XVFB_PID"
+        sleep 10
+    fi
+
+
+    echo "Sleeping for 1 hour"
+    sleep 3600
+    
+    
 done

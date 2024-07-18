@@ -2,14 +2,16 @@
 
 PM2_PATH=~/.nvm/versions/node/v22.2.0/bin/pm2
 NVM_PATH=~/.nvm
+DOCKER_PATH=/usr/bin/docker
 
-if [ $# -ne 2 ]; then
-    echo "Usage: $0 <script_array_file> <start_index>"
+if [ $# -ne 3 ]; then
+    echo "Usage: $0 <script_array_file> <start_index> <initial_iter>"
     exit 1
 fi
 
 SCRIPT_ARRAY_FILE=$1
 START_INDEX=$2
+INITIAL_ITER=$3
 
 # Source the script array file
 if [ -f "$SCRIPT_ARRAY_FILE" ]; then
@@ -25,6 +27,12 @@ if ! [[ "$START_INDEX" =~ ^[0-9]+$ ]]; then
     exit 1
 fi
 
+# Validate INITIAL_ITER
+if ! [[ "$INITIAL_ITER" =~ ^[0-9]+$ ]]; then
+    echo "Initial iteration must be a non-negative integer."
+    exit 1
+fi
+
 key=1
 key_range=5
 
@@ -35,7 +43,11 @@ for ((i=START_INDEX; i<${#scripts[@]}; i++)); do
     script_path=$1
     name=$2
     country=$3
-    currIter=$4
+    if [ $i -eq $START_INDEX ]; then
+        currIter=$INITIAL_ITER
+    else
+        currIter=$4
+    fi
     prevIter=-1
 
     $PM2_PATH stop "$name"
@@ -50,7 +62,6 @@ for ((i=START_INDEX; i<${#scripts[@]}; i++)); do
             current_time=$(date +"%Y-%m-%d %H:%M:%S")
 
             if [ "$status" == "online" ]; then
-    
                 sleep 120
             else
                 echo "$status - $current_time"
@@ -73,13 +84,13 @@ for ((i=START_INDEX; i<${#scripts[@]}; i++)); do
                     extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1 | xargs)
                     echo "Extracted iter: $extracted_iter"
                     if [ -n "$extracted_iter" ]; then
-                        currIter=$((extracted_iter))
+                        currIter=$((extracted_iter + 1))
                     else
                         echo "iter not extracted"
                         currIter=$((currIter + 10))
                     fi
 
-                elif echo "$log_output" | grep -qi "Navigation timeout\|Partial Translation\|status code 500\|Fatal server\|Make sure an X server"; then
+                elif echo "$log_output" | grep -qi "Navigation timeout\|Partial Translation\|status code 500\|Fatal server\|Make sure an X server\|30000ms exceeded\|90000ms exceeded"; then
                     extracted_iter=$(echo "$log_output" | grep -oP 'current iter: \K\d+' | tail -n 1 | xargs)
                     echo "Extracted iter: $extracted_iter"
 
@@ -109,4 +120,25 @@ for ((i=START_INDEX; i<${#scripts[@]}; i++)); do
         sleep 30
         echo "Restarting $name with currIter=$currIter, key=$key"
     done
+
+     # Restart MongoDB instances
+    $DOCKER_PATH stop mongo1 mongo2 mongo3
+    sleep 15
+    $DOCKER_PATH start mongo1 mongo2 mongo3
+    sleep 30
+    echo "MongoDB instances restarted"
+
+     
+    XVFB_PID=$(pgrep -f "Xvfb :99")
+    if [ -n "$XVFB_PID" ]; then
+        echo "Killing existing Xvfb process with PID: $XVFB_PID"
+        kill -9 "$XVFB_PID"
+        sleep 10
+    fi
+
+
+    echo "Sleeping for 1 hour"
+    sleep 3600
+    
+    
 done
