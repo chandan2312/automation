@@ -1,8 +1,6 @@
 #!/bin/bash
 
-PM2_PATH=~/.nvm/versions/node/v22.2.0/bin/pm2
-NVM_PATH=~/.nvm
-DOCKER_PATH=/usr/bin/docker
+
 
 if [ $# -ne 3 ]; then
     echo "Usage: $0 <script_array_file> <start_index> <initial_iter>"
@@ -50,12 +48,12 @@ for ((i=START_INDEX; i<${#scripts[@]}; i++)); do
     fi
     prevIter=-1
 
-    $PM2_PATH stop "$name"
+    pm2 stop "$name"
     echo "Stopped $name"
 
     while true; do
         # Start the script
-        $PM2_PATH start /var/www/dc_factory/xvfb.sh --name "$name" --no-autorestart -- /var/www/dc_factory/$script_path $country "$currIter" "$key"
+        pm2 start /home/ubuntu/sites/dcf/xvfb.sh --name "$name" --interpreter ~/.bun/bin/bun --no-autorestart  -- /home/ubuntu/sites/dcf/$script_path $country "$currIter" "$key"
 
         while true; do
             status=$($PM2_PATH jlist | grep -Po '"name":"'$name'".*?"status":"\K[^"]*' | xargs)
@@ -121,12 +119,6 @@ for ((i=START_INDEX; i<${#scripts[@]}; i++)); do
         echo "Restarting $name with currIter=$currIter, key=$key"
     done
 
-     # Restart MongoDB instances
-    $DOCKER_PATH stop mongo1 mongo2 mongo3
-    sleep 15
-    $DOCKER_PATH start mongo1 mongo2 mongo3
-    sleep 30
-    echo "MongoDB instances restarted"
 
      
     XVFB_PID=$(pgrep -f "Xvfb :99")
@@ -137,8 +129,8 @@ for ((i=START_INDEX; i<${#scripts[@]}; i++)); do
     fi
 
 
-    echo "Sleeping for 1 hour"
-    sleep 3600
+    echo "Sleeping for 30 min"
+    sleep 1800
     
     
 done
