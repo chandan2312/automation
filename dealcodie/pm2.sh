@@ -51,9 +51,15 @@ for ((i=START_INDEX; i<${#scripts[@]}; i++)); do
     pm2 stop "$name"
     echo "Stopped $name"
 
+
+
     while true; do
+
+        echo "Starting $name - $script_path with $country $currIter, key=$key"
         # Start the script
         pm2 start /home/ubuntu/sites/dcf/xvfb.sh --name "$name" --interpreter ~/.bun/bin/bun --no-autorestart  -- /home/ubuntu/sites/dcf/$script_path $country "$currIter" "$key"
+
+        # pm2 start /home/ubuntu/sites/dcf/xvfb.sh --name "Trial" --interpreter ~/.bun/bin/bun --no-autorestart  -- /home/ubuntu/sites/dcf/cron/network/promocodie.js 1500 3
 
         while true; do
             status=$($PM2_PATH jlist | grep -Po '"name":"'$name'".*?"status":"\K[^"]*' | xargs)
